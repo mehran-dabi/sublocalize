@@ -2,9 +2,10 @@
 .env
 
 # Binary
+sublocalize
 sub-translator
 
-# Generated translations
+# SRT files (test data)
 *.srt
 
 # Go

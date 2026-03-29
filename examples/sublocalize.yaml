@@ -1,0 +1,10 @@
+endpoint: https://litellm.internal.company.com/v1
+model: claude-opus-4-6
+target_language: fa
+style: natural
+batch_size: 40
+temperature: 0.9
+api_key_env: SUBLOCALIZE_API_KEY
+keep_names_in_latin: true
+context_lines: 2
+concurrency: 5
