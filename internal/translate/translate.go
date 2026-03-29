@@ -20,6 +20,7 @@ type Translator struct {
 	Prompt      string
 	Temperature float64
 	Concurrency int
+	MaxRetries  int
 	BatchDelay  time.Duration
 	Verbose     bool
 }
@@ -61,18 +62,19 @@ func (t *Translator) TranslateBatches(ctx context.Context, batches []batching.Ba
 			defer func() { <-sem }()
 
 			batchStart := time.Now()
-			log.Printf("batch %d/%d: translating subtitles %d–%d ...",
-				i+1, totalBatches, batch.Items[0].Index, batch.Items[len(batch.Items)-1].Index)
+			label := fmt.Sprintf("batch %d/%d", i+1, totalBatches)
+			log.Printf("%s: translating subtitles %d–%d ...",
+				label, batch.Items[0].Index, batch.Items[len(batch.Items)-1].Index)
 
-			entries, err := t.translateBatch(ctx, batch)
+			entries, err := t.translateBatchWithRetry(ctx, batch, label)
 			results[i] = batchResult{index: i, entries: entries, err: err}
 
 			if err != nil {
-				log.Printf("batch %d/%d: failed in %s: %v",
-					i+1, totalBatches, time.Since(batchStart).Round(time.Millisecond), err)
+				log.Printf("%s: failed in %s: %v",
+					label, time.Since(batchStart).Round(time.Millisecond), err)
 			} else {
-				log.Printf("batch %d/%d: received %d translation(s) in %s",
-					i+1, totalBatches, len(entries), time.Since(batchStart).Round(time.Millisecond))
+				log.Printf("%s: received %d translation(s) in %s",
+					label, len(entries), time.Since(batchStart).Round(time.Millisecond))
 			}
 		}(i, batch)
 	}
@@ -98,6 +100,31 @@ func (t *Translator) TranslateBatches(ctx context.Context, batches []batching.Ba
 		totalBatches, time.Since(start).Round(time.Millisecond))
 
 	return translated, nil
+}
+
+func (t *Translator) translateBatchWithRetry(ctx context.Context, batch batching.Batch, label string) ([]subtitleEntry, error) {
+	var lastErr error
+	for attempt := range t.MaxRetries + 1 {
+		if attempt > 0 {
+			backoff := time.Duration(1<<(attempt-1)) * time.Second
+			log.Printf("%s: retrying (%d/%d) after %s ...", label, attempt, t.MaxRetries, backoff)
+			select {
+			case <-ctx.Done():
+				return nil, ctx.Err()
+			case <-time.After(backoff):
+			}
+		}
+
+		entries, err := t.translateBatch(ctx, batch)
+		if err == nil {
+			return entries, nil
+		}
+		lastErr = err
+		if ctx.Err() != nil {
+			return nil, ctx.Err()
+		}
+	}
+	return nil, lastErr
 }
 
 func (t *Translator) translateBatch(ctx context.Context, batch batching.Batch) ([]subtitleEntry, error) {

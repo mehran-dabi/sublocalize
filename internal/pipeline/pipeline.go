@@ -55,6 +55,7 @@ func New(cfg *config.Config) (*Pipeline, error) {
 		Prompt:      systemPrompt,
 		Temperature: cfg.Temperature,
 		Concurrency: cfg.Concurrency,
+		MaxRetries:  cfg.MaxRetries,
 		BatchDelay:  time.Second,
 		Verbose:     cfg.Verbose,
 	}

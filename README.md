@@ -62,6 +62,7 @@ sublocalize translate [flags]
 | `--batch-size`       | `40`                   | Subtitles per translation batch                   |
 | `--context-lines`    | `0`                    | Surrounding subtitle lines included as context    |
 | `--concurrency`      | `5`                    | Max concurrent API requests                       |
+| `--retries`          | `3`                    | Max retries per batch on transient failures       |
 | `--temperature`      | `0.3`                  | LLM sampling temperature                          |
 | `--style`            | `natural`              | Translation style (natural, formal, casual)       |
 | `--keep-names-latin` | `true` (via config)    | Keep character/place names in Latin script        |
@@ -86,6 +87,7 @@ api_key_env: SUBLOCALIZE_API_KEY
 keep_names_in_latin: true
 context_lines: 2
 concurrency: 5
+max_retries: 3
 ```
 
 Then run with:

@@ -41,6 +41,7 @@ func init() {
 	f.Int("batch-size", 0, "number of subtitles per translation batch")
 	f.Int("context-lines", 0, "surrounding subtitle lines included as context")
 	f.Int("concurrency", 0, "max concurrent API requests")
+	f.Int("retries", 0, "max retries per batch on transient failures")
 	f.Float64("temperature", 0, "LLM sampling temperature")
 	f.String("format", "", "LLM response format (json)")
 
@@ -126,6 +127,9 @@ func applyFlags(cmd *cobra.Command, cfg *config.Config) {
 	}
 	if flags.Changed("concurrency") {
 		cfg.Concurrency, _ = flags.GetInt("concurrency")
+	}
+	if flags.Changed("retries") {
+		cfg.MaxRetries, _ = flags.GetInt("retries")
 	}
 	if flags.Changed("temperature") {
 		cfg.Temperature, _ = flags.GetFloat64("temperature")

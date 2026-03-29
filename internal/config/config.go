@@ -29,6 +29,7 @@ type Config struct {
 	DryRun         bool              `yaml:"-"`
 	Verbose        bool              `yaml:"verbose"`
 	Concurrency    int               `yaml:"concurrency"`
+	MaxRetries     int               `yaml:"max_retries"`
 }
 
 func Default() *Config {
@@ -43,6 +44,7 @@ func Default() *Config {
 		KeepNamesLatin: true,
 		Format:         "json",
 		Concurrency:    5,
+		MaxRetries:     3,
 	}
 }
 
@@ -129,5 +131,6 @@ func (c *Config) Print() {
 	log.Printf("  prompt file:      %s", c.PromptFile)
 	log.Printf("  format:           %s", c.Format)
 	log.Printf("  concurrency:      %d", c.Concurrency)
+	log.Printf("  max retries:      %d", c.MaxRetries)
 	log.Printf("  dry run:          %v", c.DryRun)
 }
